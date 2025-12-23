@@ -111,3 +111,38 @@ def inicializar_bd():
 if __name__ == "__main__":
     inicializar_bd()
     app.run(host="0.0.0.0", port=PORT)
+
+
+# ---------------------------
+# 🔸 ROL ADMIN/INVITADO
+# ---------------------------
+
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import os
+import jwt
+import datetime
+
+app = Flask(__name__)
+CORS(app)
+
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "clave_supersecreta")
+
+@app.route("/api/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+
+    admin_user = os.getenv("ADMIN_USER", "admin")
+    admin_pass = os.getenv("ADMIN_PASS", "CIEcoronas2025")
+
+    if username == admin_user and password == admin_pass:
+        token = jwt.encode(
+            {"user": username, "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=8)},
+            app.config['SECRET_KEY'],
+            algorithm="HS256"
+        )
+        return jsonify({"token": token, "role": "admin"}), 200
+
+    return jsonify({"message": "Credenciales inválidas"}), 401
