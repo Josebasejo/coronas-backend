@@ -6,7 +6,14 @@ import os
 from datetime import datetime
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+# ✅ CORS robusto para Safari/iOS (incluye DELETE + OPTIONS + headers)
+CORS(
+    app,
+    resources={r"/api/*": {"origins": "*"}},
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+)
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "database.db")
 
@@ -167,6 +174,12 @@ def delete_modelo(modelo_id):
     return jsonify({"status": "ok", "message": "Modelo eliminado"}), 200
 
 
+# ✅ NUEVO: fallback iOS/Safari (si DELETE falla, borramos con POST)
+@app.post("/api/modelos/<int:modelo_id>/delete")
+def delete_modelo_post(modelo_id):
+    return delete_modelo(modelo_id)
+
+
 # ---------- FILTRADO POR SECCIÓN ----------
 @app.get("/api/secciones/<seccion>/modelos")
 def get_modelos_by_seccion(seccion):
@@ -182,5 +195,5 @@ def get_modelos_by_seccion(seccion):
 
 # ---------- MAIN ----------
 if __name__ == "__main__":
-    # En local
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
