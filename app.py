@@ -7,6 +7,18 @@ from datetime import datetime
 import psycopg2
 from psycopg2.extras import RealDictCursor, Json
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # ✅ carga .env desde la carpeta actual
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL no está configurada.")
+
+
+
 app = Flask(__name__)
 CORS(
     app,
